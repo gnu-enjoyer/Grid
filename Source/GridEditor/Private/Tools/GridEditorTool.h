@@ -30,6 +30,7 @@ class GRIDEDITOR_API UGridEditorToolBuilder : public UInteractiveToolBuilder
 
 public:
 	virtual bool CanBuildTool(const FToolBuilderState& SceneState) const override { return true; }
+	
 	virtual UInteractiveTool* BuildTool(const FToolBuilderState& SceneState) const override;
 };
 
@@ -103,28 +104,31 @@ public:
 
 	/* Config for JSON */
 	const FString Dir = "Grid";
+	
 	virtual void ImportedJSON();
 
 	virtual void SetWorld(UWorld* World);
+	
+	void DrawEditorBox(const FVector& Loc, FColor Colour, bool Persistent=false, const FVector& Extent = {0.5,0.5,0.5});
 
 	/** UInteractiveTool overrides */
 	virtual void Setup() override;
+	
 	virtual void Render(IToolsContextRenderAPI* RenderAPI) override;
+	
 	virtual void OnPropertyModified(UObject* PropertySet, FProperty* Property) override;
 
 	/** IClickDragBehaviorTarget implementation */
 	virtual FInputRayHit CanBeginClickDragSequence(const FInputDeviceRay& PressPos) override;
+	
 	virtual void OnClickPress(const FInputDeviceRay& PressPos) override;
+	
 	virtual void OnClickRelease(const FInputDeviceRay& ReleasePos) override;
-
-	virtual void OnClickDrag(const FInputDeviceRay& DragPos) override
-	{
-	};
-
-	virtual void OnTerminateDragSequence() override
-	{
-	};
-
+	
+	virtual void OnClickDrag(const FInputDeviceRay& DragPos) override {}
+	
+	virtual void OnTerminateDragSequence() override {}
+	
 	/** IModifierToggleBehaviorTarget implementation (inherited via IClickDragBehaviorTarget) */
 	virtual void OnUpdateModifierState(int ModifierID, bool bIsOn) override;
 
@@ -141,6 +145,7 @@ protected:
 	static const int Index;
 
 	static const int MoveSecondPointModifierID = 1; // identifier we associate with the shift key
+	
 	bool bSecondPointModifierDown = false; // flag we use to keep track of modifier state
 
 	FInputRayHit FindRayHit(const FRay& WorldRay, FVector& HitPos); // raycasts into World
