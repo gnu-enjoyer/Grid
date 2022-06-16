@@ -2,14 +2,9 @@
 
 #include "GridManager.h"
 
-AGridManager::AGridManager()
-{
-	PrimaryActorTick.bCanEverTick = false;
-}
-
 bool AGridManager::StartGridManager(UGridDataAsset* Data)
 {
-	if (GetOuter()->GetWorld() && Data)
+	if (WorldPtr = GetOuter()->GetWorld(); Data != nullptr)
 		GridData = Data;
 
 	return GridData == Data;
@@ -39,26 +34,21 @@ FIntVector AGridManager::GetActorGrid(AActor* inActor) const
 TArray<AActor*> AGridManager::GetGridArea(const FIntVector& Centre, ECollisionChannel Channel,
                                           const FVector& Extent) const
 {
+
 	TArray<AActor*> OutActor;
 
-	if (!GridData) return OutActor;
+	if (!GridData) return MoveTemp(OutActor);
+	
+	TArray<FOverlapResult> Overlaps;
 
-	FHitResult HitResult;
+	if(WorldPtr->OverlapMultiByChannel(Overlaps, GridData->GridToWorld(Centre), FQuat::Identity, Channel, FCollisionShape::MakeBox(GridData->GridSize*(Extent/2))))
+	{
 
-	const FCollisionObjectQueryParams ObjectParams(Channel);
-	const FCollisionQueryParams Params;
+		OutActor.Reserve(Overlaps.Num());
 
-	UWorld* World = GetOuter()->GetWorld();
-
-	auto Loc = GridData->GridToWorld(Centre);
-
-	if (auto bHit = World
-		                ? World->SweepSingleByObjectType(HitResult,
-		                                                 Loc, Loc, FQuat(), ObjectParams,
-		                                                 FCollisionShape::MakeBox(
-			                                                 Extent * GridData->GetGridSize()), Params)
-		                : false)
-		OutActor.Add(HitResult.GetActor());
-
-	return OutActor;
+		for(auto &i : Overlaps)
+			OutActor.Emplace(i.GetActor());			
+	}
+	
+	return MoveTemp(OutActor);
 }

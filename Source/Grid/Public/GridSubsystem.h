@@ -13,15 +13,13 @@ class GRID_API UGridSubsystem : public UWorldSubsystem
 
 public:
 	UGridSubsystem();
-
-	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
-
+	
 	//If multiple Grid Managers are desired then you will have to handle your own storage 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Grid")
 	FORCEINLINE class AGridManager* GetGridManager() const { return GridManager; }
-
+	
 private:
 	//Handles conversion of world space to grid space
 	UPROPERTY()
-	class AGridManager* GridManager = nullptr;
+	class AGridManager* GridManager = nullptr;	
 };

@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Info.h"
 #include "GridDataAsset.h"
-#include "Kismet/KismetMathLibrary.h"
 #include "GridManager.generated.h"
 
 UCLASS()
@@ -14,7 +13,10 @@ class GRID_API AGridManager : public AInfo
 	GENERATED_BODY()
 
 public:
-	AGridManager();
+	AGridManager()
+	{
+		PrimaryActorTick.bCanEverTick = false;
+	}
 
 	//Starts the Grid Manager: required for all other functionality
 	UFUNCTION(BlueprintCallable, Category="Grid|Grid Manager")
@@ -22,7 +24,7 @@ public:
 
 	//Returns the grid coordinate under the cursor (clientside only)
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Grid|Grid Manager")
-	FIntVector GetGridUnderCursor(APlayerController* PC, ECollisionChannel Channel = ECC_Pawn) const;
+	FIntVector GetGridUnderCursor(APlayerController* PC, ECollisionChannel Channel = ECC_Visibility) const;
 
 	//Returns an actor's grid coordinate
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Grid|Grid Manager")
@@ -30,8 +32,8 @@ public:
 
 	//Returns the actor(s) in a grid box: 1*(1x1x1) but shape can be customised
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Grid|Grid Manager")
-	TArray<AActor*> GetGridArea(const FIntVector& Centre, ECollisionChannel Channel = ECC_Pawn,
-	                            const FVector& Extent = FVector(0.5, 0.5, 0.5)) const;
+	TArray<AActor*> GetGridArea(const FIntVector& Centre, ECollisionChannel Channel = ECC_Visibility,
+	                            const FVector& Extent = FVector(1, 1, 1)) const;
 
 protected:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Grid|Grid Manager")
@@ -51,5 +53,5 @@ private:
 
 	//Pointer to the current world
 	UPROPERTY(Transient)
-	UWorld* WorldPtr;
+	TWeakObjectPtr<UWorld> WorldPtr;
 };

@@ -5,10 +5,5 @@
 
 UGridSubsystem::UGridSubsystem()
 {
-	GridManager = CreateDefaultSubobject<AGridManager>("Grid Manager");
-}
-
-void UGridSubsystem::Initialize(FSubsystemCollectionBase& Collection)
-{
-	Super::Initialize(Collection);
+	GridManager = CreateDefaultSubobject<AGridManager>("Grid Manager");	
 }
