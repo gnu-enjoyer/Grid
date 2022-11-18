@@ -10,7 +10,7 @@ FGridEditorModeCommands::FGridEditorModeCommands()
 	: TCommands<FGridEditorModeCommands>("GridEditorMode",
 	                                     NSLOCTEXT("GridEditorMode", "GridEditorModeCommands", "Grid Editor Mode"),
 	                                     NAME_None,
-	                                     FEditorStyle::GetStyleSetName())
+	                                     FAppStyle::GetAppStyleSetName())
 {
 }
 

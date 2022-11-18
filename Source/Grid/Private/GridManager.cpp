@@ -37,7 +37,7 @@ TArray<AActor*> AGridManager::GetGridArea(const FIntVector& Centre, ECollisionCh
 
 	TArray<AActor*> OutActor;
 
-	if (!GridData) return MoveTemp(OutActor);
+	if (!GridData) return OutActor;
 	
 	TArray<FOverlapResult> Overlaps;
 
@@ -50,5 +50,5 @@ TArray<AActor*> AGridManager::GetGridArea(const FIntVector& Centre, ECollisionCh
 			OutActor.Emplace(i.GetActor());			
 	}
 	
-	return MoveTemp(OutActor);
+	return OutActor;
 }
