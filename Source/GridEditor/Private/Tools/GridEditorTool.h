@@ -8,20 +8,7 @@
 #include "BaseTools/ClickDragTool.h"
 #include "GridEditorTool.generated.h"
 
-/*
- * For Import/Export to JSON without DT
- */
-USTRUCT(BlueprintType)
-struct FGridJSON
-{
-	GENERATED_BODY()
-
-	UPROPERTY(VisibleAnywhere)
-	FIntVector a;
-
-	UPROPERTY(EditAnywhere)
-	FGameplayTagContainer b;
-};
+class UGridDataAsset;
 
 UCLASS()
 class GRIDEDITOR_API UGridEditorToolBuilder : public UInteractiveToolBuilder
@@ -30,7 +17,6 @@ class GRIDEDITOR_API UGridEditorToolBuilder : public UInteractiveToolBuilder
 
 public:
 	virtual bool CanBuildTool(const FToolBuilderState& SceneState) const override { return true; }
-
 	virtual UInteractiveTool* BuildTool(const FToolBuilderState& SceneState) const override;
 };
 
@@ -40,28 +26,29 @@ class GRIDEDITOR_API UGridEditorToolProperties : public UInteractiveToolProperty
 	GENERATED_BODY()
 
 public:
+	/** */
 	DECLARE_MULTICAST_DELEGATE(FOnImportedJSON);
 	FOnImportedJSON JSONDelegate;
 
-	/* Ptr to Data Asset for the World */
-	UPROPERTY(EditAnywhere, meta = (DisplayName = "Grid Data Asset"))
-	class UGridDataAsset* GridData = nullptr;
-
-	/** If enabled: grids that contain tags will be visualised. */
-	UPROPERTY(EditAnywhere, meta = (DisplayName = "Visualise Grid"))
-	bool bShowGrid = true;
+	/** */
+	FString file = FPaths::ProjectPluginsDir() + TEXT("Grid/");
 
 	/** Currently Selected Grid Coords */
-	//UPROPERTY(VisibleAnywhere, meta = (DisplayName = "Selected Grid"))
 	FIntVector CurrentCoords{};
+
+	/* Ptr to Data Asset currently being edited */
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "Grid Data Asset"))
+	UGridDataAsset* GridData = nullptr;
+
+	/** If enabled: grids that contain tags will be drawn in UEd */
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "Visualise Grid"))
+	bool bShowGrid = true;
 
 	//hacky to get the GTag Container updating :/
 	/** Currently Selected Grid Tags */
 	UPROPERTY(EditAnywhere,
 		meta=(ForceInlineRow, ReadOnlyKeys, NoResetToDefault, DisplayName = "Selected Grid", Categories="Grid"))
 	TMap<FIntVector, FGameplayTagContainer> CurrentGridTags{};
-
-	/* */
 
 	//Save to Data Asset (Recommended)
 	UFUNCTION(CallInEditor, Category="Grid")
@@ -74,9 +61,6 @@ public:
 	//Import from JSON (Experimental)
 	UFUNCTION(CallInEditor, Category="Grid")
 	void ImportJSON();
-
-private:
-	FString file = FPaths::ProjectPluginsDir() + TEXT("Grid/");
 };
 
 UCLASS()
@@ -88,8 +72,7 @@ public:
 	DECLARE_MULTICAST_DELEGATE(FOnTagChanged);
 	FOnTagChanged Del;
 
-	/** Grid */
-	void Visualise(const bool show = true, const FIntVector& in = {0, 0, 0});
+	void Visualise(bool bShow = true, const FIntVector& InCentre = {0, 0, 0});
 
 	//Base LMB
 	void Primary();
@@ -103,17 +86,19 @@ public:
 	/* Config for JSON */
 	const FString Dir = "Grid";
 
-	virtual void ImportedJSON();
+	void ImportedJSON();
 
-	virtual void SetWorld(UWorld* World);
+	void SetWorld(UWorld* InWorld)
+	{
+		check(InWorld)
+		TargetWorld = InWorld;
+	}
 
 	void DrawEditorBox(const FVector& Loc, FColor Colour, bool Persistent = false,
-	                   const FVector& Extent = {0.5, 0.5, 0.5});
+	                   const FVector& Extent = {0.5, 0.5, 0.5}) const;
 
 	/** UInteractiveTool overrides */
 	virtual void Setup() override;
-
-	virtual void Render(IToolsContextRenderAPI* RenderAPI) override;
 
 	virtual void OnPropertyModified(UObject* PropertySet, FProperty* Property) override;
 

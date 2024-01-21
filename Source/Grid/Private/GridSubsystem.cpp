@@ -41,7 +41,7 @@ TArray<AActor*> UGridSubsystem::GetGridArea(const FIntVector& InCentre, ECollisi
 
 	TArray<FOverlapResult> Overlaps;
 	if (GetWorld()->OverlapMultiByChannel(Overlaps, CurrentGrid->GridToWorld(InCentre), FQuat::Identity, InChannel,
-	                                      FCollisionShape::MakeBox(CurrentGrid->GridSize * (InExtent / 2))))
+	                                      FCollisionShape::MakeBox(CurrentGrid->Grid.Size * (InExtent / 2))))
 	{
 		OutActors.Reserve(Overlaps.Num());
 		for (auto& i : Overlaps)

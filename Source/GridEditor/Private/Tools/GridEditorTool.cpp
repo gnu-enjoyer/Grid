@@ -2,43 +2,29 @@
 
 #include "GridEditorTool.h"
 #include "InteractiveToolManager.h"
-#include "ToolBuilderUtil.h"
 #include "BaseBehaviors/ClickDragBehavior.h"
-#include "GameplayTags.h"
 #include "CollisionQueryParams.h"
 #include "DesktopPlatformModule.h"
-#include "GridTags.h"
 #include "GridDataAsset.h"
-#include "GridEditorModeToolkit.h"
 #include "JsonObjectConverter.h"
 #include "Engine/World.h"
-
 #include "Misc/FileHelper.h"
 
-// localization namespace
 #define LOCTEXT_NAMESPACE "UGridEditorInteractiveTool"
-
-/*
- * ToolBuilder
- */
 
 UInteractiveTool* UGridEditorToolBuilder::BuildTool(const FToolBuilderState& SceneState) const
 {
 	UGridEditorTool* NewTool = NewObject<UGridEditorTool>(SceneState.ToolManager);
-
 	NewTool->SetWorld(SceneState.World);
-
 	return NewTool;
 }
 
 void UGridEditorToolProperties::SaveDataAsset()
 {
-	if (!GridData)
+	if (GridData)
 	{
-		return;
+		GridData->Modify(true);
 	}
-
-	GridData->Modify(true);
 }
 
 void UGridEditorToolProperties::ExportJSON()
@@ -48,35 +34,14 @@ void UGridEditorToolProperties::ExportJSON()
 		return;
 	}
 
-	TArray<FString> StringBuffer{"["};
-
-	StringBuffer.Reserve(GridData->Grid.Num());
-
-	FString Out;
-
-	for (auto& a : GridData->Grid)
+	FString OutString{};
+	if (FJsonObjectConverter::UStructToJsonObjectString(GridData->Grid, OutString))
 	{
-		if (FJsonObjectConverter::UStructToJsonObjectString(
-			FGridJSON{a.Key, a.Value}, Out, 0, 0, 0, nullptr, false))
+		const auto Filename = file + FDateTime::UtcNow().ToString() + TEXT(".json");
+		if (!IFileManager::Get().DirectoryExists(*Filename))
 		{
-			StringBuffer.Add(Out + TEXT(","));
+			FFileHelper::SaveStringToFile(OutString, *Filename, FFileHelper::EEncodingOptions::ForceUTF8);
 		}
-	}
-
-	if (StringBuffer.IsEmpty())
-	{
-		return;
-	}
-
-	StringBuffer.Last().LeftInline(StringBuffer.Last().Len() - 1);
-
-	StringBuffer.Add("]");
-
-	const auto Save = file + FDateTime::UtcNow().ToString() + TEXT(".json");
-
-	if (!IFileManager::Get().DirectoryExists(*Save))
-	{
-		FFileHelper::SaveStringArrayToFile(StringBuffer, *Save, FFileHelper::EEncodingOptions::ForceUTF8);
 	}
 }
 
@@ -88,12 +53,9 @@ void UGridEditorToolProperties::ImportJSON()
 	}
 
 	IDesktopPlatform* DesktopPlatform = FDesktopPlatformModule::Get();
-
 	const FText Title = LOCTEXT("Import JSON", "Import JSON from file");
-
 	const FString FileTypes = TEXT("JSON (*.json)|*.json|Text (*.txt)|*.txt");
-
-	TArray<FString> Files;
+	TArray<FString> Files{};
 
 	if (auto Fs = FSlateApplication::Get().GetActiveTopLevelWindow()->GetNativeWindow()->GetOSWindowHandle())
 	{
@@ -107,54 +69,24 @@ void UGridEditorToolProperties::ImportJSON()
 		);
 	}
 
-	if (Files.IsEmpty())
+	if (!Files.IsEmpty())
 	{
-		return;
+		auto Fd = Files.Last();
+		FString Buffer{};
+
+		if (FFileHelper::LoadFileToString(Buffer, *Fd))
+		{
+			FJsonObjectConverter::JsonObjectStringToUStruct<FGridData>(Buffer, &GridData->Grid);
+			JSONDelegate.Broadcast();
+		}
 	}
-
-	auto Fd = Files.Last();
-
-	if (!FFileHelper::LoadFileToStringArray(Files, *Fd))
-	{
-		return;
-	}
-
-	FString Buffer;
-
-	for (auto& a : Files)
-	{
-		Buffer.Append(a);
-	}
-
-	TArray<FGridJSON> Out;
-
-	if (!FJsonObjectConverter::JsonArrayStringToUStruct<FGridJSON>(Buffer, &Out, 0, 0))
-	{
-		return;
-	}
-
-	GridData->Grid.Empty();
-
-	for (auto& json : Out)
-	{
-		GridData->Grid.Add(json.a, json.b);
-	}
-
-	JSONDelegate.Broadcast();
 }
 
-void UGridEditorTool::SetWorld(UWorld* World)
-{
-	check(World);
-
-	this->TargetWorld = World;
-}
-
-void UGridEditorTool::DrawEditorBox(const FVector& Loc, FColor Colour, bool Persistent, const FVector& Extent)
+void UGridEditorTool::DrawEditorBox(const FVector& Loc, FColor Colour, bool Persistent, const FVector& Extent) const
 {
 	DrawDebugSolidBox(TargetWorld,
 	                  Loc,
-	                  (Extent * Properties->GridData->GridSize),
+	                  (Extent * Properties->GridData->Grid.Size),
 	                  FQuat(0),
 	                  Colour,
 	                  Persistent,
@@ -162,28 +94,23 @@ void UGridEditorTool::DrawEditorBox(const FVector& Loc, FColor Colour, bool Pers
 	                  0);
 }
 
-
-void UGridEditorTool::Visualise(const bool show, const FIntVector& in)
+void UGridEditorTool::Visualise(bool bShow, const FIntVector& InCentre)
 {
-	if (!show)
+	if (!bShow)
 	{
 		FlushPersistentDebugLines(TargetWorld);
-
 		return;
 	}
 
-	if (in.IsZero())
+	if (!InCentre.IsZero())
 	{
-		for (auto& a : Properties->GridData->Grid)
-		{
-			DrawEditorBox(Properties->GridData->GridToWorld(a.Key), FColor::Orange.WithAlpha(25), true);
-		}
+		DrawEditorBox(Properties->GridData->GridToWorld(InCentre), FColor::Orange.WithAlpha(25), true);
+		return;
 	}
 
-
-	else
+	for (auto& [vec, tags] : Properties->GridData->Grid.Contents)
 	{
-		DrawEditorBox(Properties->GridData->GridToWorld(in), FColor::Orange.WithAlpha(25), true);
+		DrawEditorBox(Properties->GridData->GridToWorld(vec), FColor::Orange.WithAlpha(25), true);
 	}
 }
 
@@ -200,14 +127,12 @@ void UGridEditorTool::Primary(int i)
 void UGridEditorTool::Shutdown(EToolShutdownType ShutdownType)
 {
 	Super::Shutdown(ShutdownType);
-
 	FlushPersistentDebugLines(TargetWorld);
 }
 
 void UGridEditorTool::ImportedJSON()
 {
 	FlushPersistentDebugLines(TargetWorld);
-
 	Visualise(Properties->bShowGrid);
 }
 
@@ -216,25 +141,17 @@ void UGridEditorTool::Setup()
 	UInteractiveTool::Setup();
 
 	FPlatformFileManager::Get().GetPlatformFile().CreateDirectoryTree(*Dir);
-
 	UClickDragInputBehavior* MouseBehavior = NewObject<UClickDragInputBehavior>();
-
 	MouseBehavior->Modifiers.RegisterModifier(MoveSecondPointModifierID, FInputDeviceState::IsShiftKeyDown);
-
 	MouseBehavior->Initialize(this);
-
 	AddInputBehavior(MouseBehavior);
 
 	Properties = NewObject<UGridEditorToolProperties>(this, "Grid");
-
 	AddToolPropertySource(Properties);
-
 	Properties->JSONDelegate.AddUObject(
 		this, &UGridEditorTool::ImportedJSON);
-
 	bSecondPointModifierDown = false;
 }
-
 
 void UGridEditorTool::OnUpdateModifierState(int ModifierID, bool bIsOn)
 {
@@ -246,113 +163,71 @@ void UGridEditorTool::OnUpdateModifierState(int ModifierID, bool bIsOn)
 
 FInputRayHit UGridEditorTool::CanBeginClickDragSequence(const FInputDeviceRay& PressPos)
 {
-	FVector Temp;
-
+	FVector Temp{};
 	FInputRayHit Result = FindRayHit(PressPos.WorldRay, Temp);
-
 	return Result;
 }
 
 void UGridEditorTool::OnClickRelease(const FInputDeviceRay& ReleasePos)
 {
 	FlushPersistentDebugLines(TargetWorld);
-
-
-	const auto Data = Properties->GridData;
-
-	if (!Data)
+	if (!Properties->GridData)
 	{
 		return;
 	}
 
+	auto& GridData = Properties->GridData->Grid.Contents;
 	if (bSecondPointModifierDown)
 	{
-		Data->Grid.Remove(Properties->CurrentCoords);
-
+		GridData.Remove(Properties->CurrentCoords);
 		Visualise();
-
 		return;
 	}
 
-	if (const auto Found = Data->Grid.Find(Properties->CurrentCoords))
-	{
-		Properties->CurrentGridTags.Emplace(
-			Properties->CurrentCoords,
-			*Found);
-	}
-	else
-	{
-		auto tag = Properties->GridData->Grid.Emplace(
-			Properties->CurrentCoords, FGameplayTagContainer{
-				GRID
-			});
-
-		Properties->CurrentGridTags.Emplace(Properties->CurrentCoords, tag);
-	}
-
+	auto& Found = GridData.FindOrAdd(Properties->CurrentCoords);
+	Properties->CurrentGridTags.Emplace(Properties->CurrentCoords, Found);
 	Visualise();
 }
 
 void UGridEditorTool::OnClickPress(const FInputDeviceRay& PressPos)
 {
 	FInputRayHit HitResult = FindRayHit(PressPos.WorldRay, HitPosVector);
-
 	if (const auto Data = Properties->GridData)
 	{
 		Properties->CurrentCoords = Data->WorldToGrid(HitPosVector);
-
 		Properties->CurrentGridTags.Empty();
-
 		bSecondPointModifierDown ? Primary(1) : Primary();
 	}
 }
 
 FInputRayHit UGridEditorTool::FindRayHit(const FRay& WorldRay, FVector& HitPos)
 {
-	FCollisionObjectQueryParams QueryParams(FCollisionObjectQueryParams::AllObjects);
-
+	const FCollisionObjectQueryParams QueryParams(FCollisionObjectQueryParams::AllObjects);
 	FHitResult Result;
-
 	bool bHitWorld = TargetWorld->LineTraceSingleByObjectType(Result, WorldRay.Origin, WorldRay.PointAt(999999),
 	                                                          QueryParams);
 	if (bHitWorld)
 	{
 		HitPos = Result.ImpactPoint;
-
 		return FInputRayHit(Result.Distance);
 	}
 	return FInputRayHit();
 }
 
-
 void UGridEditorTool::OnPropertyModified(UObject* PropertySet, FProperty* Property)
 {
-	if (!Properties->GridData)
-	{
-		return;
-	}
-
 	FlushPersistentDebugLines(TargetWorld);
-
-	if (!Property)
+	if (!Properties->GridData || !Property)
 	{
 		return;
 	}
 
-	if (Property->GetName() == "CurrentGridTags")
+	if (Property->GetName() == "GridData" || Property->GetName() == "CurrentGridTags")
 	{
-		Properties->GridData->Grid.Append(Properties->CurrentGridTags);
-
+		Properties->GridData->Grid.Contents.Append(Properties->CurrentGridTags);
 		Properties->SaveDataAsset();
 	}
-
 	Visualise(Properties->bShowGrid);
 }
-
-
-void UGridEditorTool::Render(IToolsContextRenderAPI* RenderAPI)
-{
-}
-
 
 #undef LOCTEXT_NAMESPACE

@@ -8,6 +8,24 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "GridDataAsset.generated.h"
 
+USTRUCT(BlueprintType)
+struct GRID_API FGridData final
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category="Grid")
+	FName Name = "Example";
+
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category="Grid")
+	float Size = 200.0f;
+
+	//A grid can hold Gameplay Tags that define how it is interacted with
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category="Grid",
+		meta=(ForceInlineRow, ReadOnlyKeys, NoResetToDefault, Categories="Grid"))
+	TMap<FIntVector, FGameplayTagContainer> Contents{};
+};
+
+
 UCLASS()
 class GRID_API UGridDataAsset : public UDataAsset
 {
@@ -24,31 +42,24 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Grid")
 	FORCEINLINE FIntVector WorldToGrid(const FVector& inVec) const
 	{
-		return (UKismetMathLibrary::FTruncVector(UKismetMathLibrary::Vector_SnappedToGrid(inVec, GridSize) / GridSize));
+		return (UKismetMathLibrary::FTruncVector(
+			UKismetMathLibrary::Vector_SnappedToGrid(inVec, Grid.Size) / Grid.Size));
 	}
 
 	//Converts a 3D (X,Y,Z) grid coordinate back into world space
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Grid")
 	FORCEINLINE FVector GridToWorld(const FIntVector& inGrid) const
 	{
-		return (UKismetMathLibrary::Conv_IntVectorToVector(inGrid) * GridSize);
+		return (UKismetMathLibrary::Conv_IntVectorToVector(inGrid) * Grid.Size);
 	}
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Grid")
 	FORCEINLINE float GetGridSize() const
 	{
-		return GridSize;
+		return Grid.Size;
 	}
 
 protected:
-	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category="Grid")
-	FName Name = "Example";
-
-	//Grid Size associated with this world
-	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category="Grid")
-	float GridSize = 200;
-
-	//A grid can hold Gameplay Tags that define how it is interacted with
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Grid")
-	TMap<FIntVector, FGameplayTagContainer> Grid{};
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category="Grid", meta=(ShowOnlyInnerProperties))
+	FGridData Grid{};
 };

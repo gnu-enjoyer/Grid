@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "EdMode.h"
 #include "Tools/UEdMode.h"
 #include "GridEditorMode.generated.h"
 
@@ -19,8 +18,7 @@ public:
 	static FString InteractiveToolName;
 
 	UGridEditorMode();
-	virtual ~UGridEditorMode();
-
+	virtual ~UGridEditorMode() override;
 
 	/** UEdMode interface */
 	virtual void Enter() override;

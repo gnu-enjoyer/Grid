@@ -6,30 +6,20 @@ public class GridEditor : ModuleRules
 {
 	public GridEditor(ReadOnlyTargetRules Target) : base(Target)
 	{
-		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
-		
-		PublicIncludePaths.AddRange(
-			new string[] {
-			}
-			);
-				
-		
-		PrivateIncludePaths.AddRange(
-			new string[] {
-			}
-			);
-			
-		
+		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+		CppStandard = CppStandardVersion.Cpp20;
+
 		PublicDependencyModuleNames.AddRange(
-			new string[]
+			new[]
 			{
-				"Core"
+				"Core",
+				"Grid",
+				"GameplayTags"
 			}
-			);
-			
-		
+		);
+
 		PrivateDependencyModuleNames.AddRange(
-			new string[]
+			new[]
 			{
 				"CoreUObject",
 				"Engine",
@@ -42,21 +32,12 @@ public class GridEditor : ModuleRules
 				"LevelEditor",
 				"InteractiveToolsFramework",
 				"EditorInteractiveToolsFramework",
-				"GameplayTags",
-				"Grid", 
-				"GameplayTagsEditor", 
-				"PropertyEditor", 
+				"GameplayTagsEditor",
+				"PropertyEditor",
 				"Json",
 				"JsonUtilities",
 				"DesktopPlatform"
 			}
-			);
-		
-		
-		DynamicallyLoadedModuleNames.AddRange(
-			new string[]
-			{
-			}
-			);
+		);
 	}
 }
