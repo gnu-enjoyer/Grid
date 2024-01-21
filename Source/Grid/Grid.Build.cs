@@ -6,37 +6,22 @@ public class Grid : ModuleRules
 {
 	public Grid(ReadOnlyTargetRules Target) : base(Target)
 	{
-		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
-
-		PrivateIncludePaths.AddRange(new string[] { });
-
-		PublicIncludePaths.AddRange(new string[] { });
-
-		PublicSystemIncludePaths.AddRange(new string[] { });
+		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+		CppStandard = CppStandardVersion.Cpp20;
 
 		PublicDependencyModuleNames.AddRange(
-			new string[]
+			new[]
 			{
-				"Core"
-			}
-		);
-
-
-		PrivateDependencyModuleNames.AddRange(
-			new string[]
-			{
-				"CoreUObject",
-				"Engine",
-				"Slate",
-				"SlateCore",
+				"Core",
 				"GameplayTags"
 			}
 		);
 
-
-		DynamicallyLoadedModuleNames.AddRange(
-			new string[]
+		PrivateDependencyModuleNames.AddRange(
+			new[]
 			{
+				"CoreUObject",
+				"Engine"
 			}
 		);
 	}

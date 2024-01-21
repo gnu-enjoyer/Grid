@@ -1,36 +1,40 @@
 {
-	"FileVersion": 3,
-	"Version": 1,
-	"VersionName": "1.1",
-	"FriendlyName": "Grid",
-	"Description": "",
-	"Category": "Grid",
-	"CreatedBy": "mike",
-	"CreatedByURL": "https://github.com/gnu-enjoyer",
-	"DocsURL": "https://github.com/gnu-enjoyer/Grid",
-	"MarketplaceURL": "",
-	"SupportURL": "",
-	"EngineVersion": "5.1.0",
-	"CanContainContent": true,
-	"IsBetaVersion": true,
-	"IsExperimentalVersion": false,
-	"Installed": false,
-	"Modules": [
-		{
-			"Name": "Grid",
-			"Type": "Runtime",
-			"LoadingPhase": "PreDefault"
-		},
-		{
-			"Name": "GridEditor",
-			"Type": "Editor",
-			"LoadingPhase": "Default"
-		}
-	],
-	"Plugins": [
-		{
-			"Name": "GameplayTagsEditor",
-			"Enabled": true
-		}
-	]
+  "FileVersion": 3,
+  "Version": 1,
+  "VersionName": "1.2",
+  "FriendlyName": "Grid",
+  "Description": "",
+  "Category": "Grid",
+  "CreatedBy": "mike",
+  "CreatedByURL": "https://github.com/gnu-enjoyer",
+  "DocsURL": "https://github.com/gnu-enjoyer/Grid",
+  "MarketplaceURL": "",
+  "SupportURL": "",
+  "EngineVersion": "",
+  "CanContainContent": true,
+  "IsBetaVersion": true,
+  "IsExperimentalVersion": false,
+  "Installed": false,
+  "EnabledByDefault": false,
+  "Modules": [
+    {
+      "Name": "Grid",
+      "Type": "Runtime",
+      "LoadingPhase": "PreDefault"
+    },
+    {
+      "Name": "GridEditor",
+      "Type": "Editor",
+      "LoadingPhase": "Default"
+    }
+  ],
+  "Plugins": [
+    {
+      "Name": "GameplayTagsEditor",
+      "Enabled": true,
+      "TargetAllowList": [
+        "Editor"
+      ]
+    }
+  ]
 }

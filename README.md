@@ -14,7 +14,7 @@ By leveraging the highly flexible and user friendly Gameplay Tags system Grid al
 
 Create and customise 2D and 3D grids using an intuitive UEditor mode.
 
-Separate self-contained workflows (Grid and GridEditor) for easy integration into any project: 
+Separate self-contained workflows (Grid and GridEditor) for easy integration into any project.
 
 Save/Load with a Grid Data Asset (Editor & runtime) for runtime gameplay functionality.
 
@@ -28,15 +28,11 @@ Grid is entirely encapsulated within the **Grid Subsystem** runtime UWorld subsy
 
 **Grid Subsystem**
 
-Inherits life cycle of a normal UWorld subsystem and contains `Grid Manager(s)`.
-
-**Grid Manager(s)**
-
-Typical use is a singleton but can co-exist for greater flexibility if 'sub-grids' are required.  
+Inherits life cycle of a normal UWorld and contains runtime `Grid(s)`.
 
 **Grid Data Asset(s)**
 
-Authored by GridEditor, with JSON support, and loaded into Grid Managers. These data assets define the grid parameters, size, and the tags of each grid square.
+Authored by GridEditor, with JSON support, and loaded into the GridSubsystem. These data assets define the grid parameters, size, and the tags of each grid square.
 
 **Gameplay Tags**
 
