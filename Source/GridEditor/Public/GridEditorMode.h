@@ -6,7 +6,7 @@
 #include "Tools/UEdMode.h"
 #include "GridEditorMode.generated.h"
 
-UCLASS()
+UCLASS(MinimalAPI)
 class UGridEditorMode : public UEdMode
 {
 	GENERATED_BODY()
@@ -18,11 +18,10 @@ public:
 	static FString InteractiveToolName;
 
 	UGridEditorMode();
-	virtual ~UGridEditorMode() override;
+	virtual ~UGridEditorMode() override = default;
 
-	/** UEdMode interface */
+	/** UEdMode */
 	virtual void Enter() override;
-	virtual void ActorSelectionChangeNotify() override;
 	virtual void CreateToolkit() override;
 	virtual TMap<FName, TArray<TSharedPtr<FUICommandInfo>>> GetModeCommands() const override;
 };

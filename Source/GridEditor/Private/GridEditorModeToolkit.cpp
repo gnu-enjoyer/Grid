@@ -1,18 +1,9 @@
 // copyright 2022 gnu-enjoyer / mike
 
 #include "GridEditorModeToolkit.h"
-#include "GridEditorMode.h"
 #include "EditorModeManager.h"
-#include "PropertyPath.h"
-#include "Components/Widget.h"
-#include "Tools/GridEditorTool.h"
 
 #define LOCTEXT_NAMESPACE "GridEditorModeToolkit"
-
-
-FGridEditorModeToolkit::FGridEditorModeToolkit()
-{
-}
 
 void FGridEditorModeToolkit::OnToolStarted(UInteractiveToolManager* Manager, UInteractiveTool* Tool)
 {
@@ -28,7 +19,6 @@ void FGridEditorModeToolkit::GetToolPaletteNames(TArray<FName>& PaletteNames) co
 {
 	PaletteNames.Add(NAME_Default);
 }
-
 
 FName FGridEditorModeToolkit::GetToolkitFName() const
 {

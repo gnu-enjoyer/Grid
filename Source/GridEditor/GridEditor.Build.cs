@@ -26,14 +26,13 @@ public class GridEditor : ModuleRules
 				"Slate",
 				"SlateCore",
 				"InputCore",
+				
 				"EditorFramework",
 				"EditorStyle",
 				"UnrealEd",
 				"LevelEditor",
 				"InteractiveToolsFramework",
 				"EditorInteractiveToolsFramework",
-				"GameplayTagsEditor",
-				"PropertyEditor",
 				"Json",
 				"JsonUtilities",
 				"DesktopPlatform"

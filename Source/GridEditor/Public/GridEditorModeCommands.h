@@ -5,11 +5,10 @@
 #include "CoreMinimal.h"
 #include "Framework/Commands/Commands.h"
 
-class FGridEditorModeCommands : public TCommands<FGridEditorModeCommands>
+class FGridEditorModeCommands final : public TCommands<FGridEditorModeCommands>
 {
 public:
 	FGridEditorModeCommands();
-
 	virtual void RegisterCommands() override;
 	static TMap<FName, TArray<TSharedPtr<FUICommandInfo>>> GetCommands();
 

@@ -6,20 +6,21 @@
 #include "Toolkits/BaseToolkit.h"
 #include "GridEditorMode.h"
 
-class FGridEditorModeToolkit : public FModeToolkit
+class UGridEditorTool;
+
+class FGridEditorModeToolkit final : public FModeToolkit
 {
 public:
-	FGridEditorModeToolkit();
-
-	class UGridEditorTool* ToolPtr = nullptr;
-
 	virtual void OnToolStarted(UInteractiveToolManager* Manager, UInteractiveTool* Tool) override;
 
-	/** FModeToolkit interface */
+	/** FModeToolkit */
 	virtual void Init(const TSharedPtr<IToolkitHost>& InitToolkitHost, TWeakObjectPtr<UEdMode> InOwningMode) override;
 	virtual void GetToolPaletteNames(TArray<FName>& PaletteNames) const override;
 
-	/** IToolkit interface */
+	/** IToolkit */
 	virtual FName GetToolkitFName() const override;
 	virtual FText GetBaseToolkitName() const override;
+
+protected:
+	UGridEditorTool* ToolPtr = nullptr;
 };

@@ -3,15 +3,15 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameplayTagContainer.h"
 #include "InteractiveToolBuilder.h"
 #include "BaseTools/ClickDragTool.h"
 #include "GridEditorTool.generated.h"
 
+class UGridEditorToolProperties;
 class UGridDataAsset;
 
-UCLASS()
-class GRIDEDITOR_API UGridEditorToolBuilder : public UInteractiveToolBuilder
+UCLASS(MinimalAPI)
+class UGridEditorToolBuilder final : public UInteractiveToolBuilder
 {
 	GENERATED_BODY()
 
@@ -20,73 +20,29 @@ public:
 	virtual UInteractiveTool* BuildTool(const FToolBuilderState& SceneState) const override;
 };
 
-UCLASS(Transient)
-class GRIDEDITOR_API UGridEditorToolProperties : public UInteractiveToolPropertySet
+UCLASS(MinimalAPI)
+class UGridEditorTool : public UInteractiveTool, public IClickDragBehaviorTarget
 {
 	GENERATED_BODY()
 
-public:
-	/** */
-	DECLARE_MULTICAST_DELEGATE(FOnImportedJSON);
-	FOnImportedJSON JSONDelegate;
+	void HandleImportedJSON();
 
-	/** */
-	FString file = FPaths::ProjectPluginsDir() + TEXT("Grid/");
-
-	/** Currently Selected Grid Coords */
-	FIntVector CurrentCoords{};
-
-	/* Ptr to Data Asset currently being edited */
-	UPROPERTY(EditAnywhere, meta = (DisplayName = "Grid Data Asset"))
-	UGridDataAsset* GridData = nullptr;
-
-	/** If enabled: grids that contain tags will be drawn in UEd */
-	UPROPERTY(EditAnywhere, meta = (DisplayName = "Visualise Grid"))
-	bool bShowGrid = true;
-
-	//hacky to get the GTag Container updating :/
-	/** Currently Selected Grid Tags */
-	UPROPERTY(EditAnywhere,
-		meta=(ForceInlineRow, ReadOnlyKeys, NoResetToDefault, DisplayName = "Selected Grid", Categories="Grid"))
-	TMap<FIntVector, FGameplayTagContainer> CurrentGridTags{};
-
-	//Save to Data Asset (Recommended)
-	UFUNCTION(CallInEditor, Category="Grid")
-	void SaveDataAsset();
-
-	//Export to JSON (Experimental)
-	UFUNCTION(CallInEditor, Category="Grid")
-	void ExportJSON();
-
-	//Import from JSON (Experimental)
-	UFUNCTION(CallInEditor, Category="Grid")
-	void ImportJSON();
-};
-
-UCLASS()
-class GRIDEDITOR_API UGridEditorTool : public UInteractiveTool, public IClickDragBehaviorTarget
-{
-	GENERATED_BODY()
+	FInputRayHit FindRayHit(const FRay& WorldRay, FVector& HitPos);
 
 public:
-	DECLARE_MULTICAST_DELEGATE(FOnTagChanged);
-	FOnTagChanged Del;
-
 	void Visualise(bool bShow = true, const FIntVector& InCentre = {0, 0, 0});
 
-	//Base LMB
+	/** LMB is pressed */
 	void Primary();
 
-	//LMB with modifiers
-	void Primary(int i);
+	/** LMB with modifiers */
+	void Primary(int32 i);
 
-	// Clean up before PIE, etc.
+	/** Clean up before PIE, etc. */
 	virtual void Shutdown(EToolShutdownType ShutdownType) override;
 
-	/* Config for JSON */
-	const FString Dir = "Grid";
-
-	void ImportedJSON();
+	void DrawEditorBox(const FVector& Loc, FColor Colour, bool Persistent = false,
+	                   const FVector& Extent = {0.5, 0.5, 0.5}) const;
 
 	void SetWorld(UWorld* InWorld)
 	{
@@ -94,19 +50,13 @@ public:
 		TargetWorld = InWorld;
 	}
 
-	void DrawEditorBox(const FVector& Loc, FColor Colour, bool Persistent = false,
-	                   const FVector& Extent = {0.5, 0.5, 0.5}) const;
-
-	/** UInteractiveTool overrides */
+	/** UInteractiveTool */
 	virtual void Setup() override;
-
 	virtual void OnPropertyModified(UObject* PropertySet, FProperty* Property) override;
 
-	/** IClickDragBehaviorTarget implementation */
+	/** IClickDragBehaviorTarget */
 	virtual FInputRayHit CanBeginClickDragSequence(const FInputDeviceRay& PressPos) override;
-
 	virtual void OnClickPress(const FInputDeviceRay& PressPos) override;
-
 	virtual void OnClickRelease(const FInputDeviceRay& ReleasePos) override;
 
 	virtual void OnClickDrag(const FInputDeviceRay& DragPos) override
@@ -117,22 +67,22 @@ public:
 	{
 	}
 
-	/** IModifierToggleBehaviorTarget implementation (inherited via IClickDragBehaviorTarget) */
+	/** IModifierToggleBehaviorTarget */
 	virtual void OnUpdateModifierState(int ModifierID, bool bIsOn) override;
 
 protected:
+	/** */
+	FVector HitPosVector{};
+
+	/** */
+	UWorld* TargetWorld = nullptr;
+
+	/** identifier we associate with the shift key */
+	static constexpr int MoveSecondPointModifierID = 1;
+
+	/** flag we use to keep track of modifier state */
+	bool bSecondPointModifierDown = false;
+
 	UPROPERTY()
 	TObjectPtr<UGridEditorToolProperties> Properties;
-
-	FVector HitPosVector;
-
-	UWorld* TargetWorld = nullptr; // target World we will raycast into
-
-	static const int Index;
-
-	static constexpr int MoveSecondPointModifierID = 1; // identifier we associate with the shift key
-
-	bool bSecondPointModifierDown = false; // flag we use to keep track of modifier state
-
-	FInputRayHit FindRayHit(const FRay& WorldRay, FVector& HitPos); // raycasts into World
 };
